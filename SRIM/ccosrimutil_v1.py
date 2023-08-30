@@ -5,37 +5,56 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+from dataclassses import dataclass
 
 # These mults are use to convert all length units to micrometers
 MULTS = {
     "A": 1E-4,
     "um": 1,
+    "mm": 1E3,
     "keV": 1,
     "MeV": 1E3,
     "GeV": 1e6
 }
 
+@dataclass
+class SRIMData:
+    data: np.array
+    density: 
+
 # Convert all to keV and micron
 def read_file(filename):
     with open(filename) as f:
         collect = False
+        collect_count = 0
         out = []
         for line in f:
-            if line.startswith("-"):
+            stripped = line.strip()
+            if stripped.startswith("Target Density"):
+
+
+            if line.startswith("-----"):
                 collect = collect != True
+                collect_count += 1
                 continue
+
             if not collect: continue
 
-            split_line = line.split()
-            row = []
-            row.append(float(split_line[0]) * MULTS[split_line[1]])
-            row.append(float(split_line[2]))
-            row.append(float(split_line[3]))
-            row.append(float(split_line[4]) * MULTS[split_line[5]])
-            row.append(float(split_line[6]) * MULTS[split_line[7]])
-            row.append(float(split_line[8]) * MULTS[split_line[9]])
+            if collect and collect_count < 2:
+                split_line = line.split()
+                row = []
+                row.append(float(split_line[0]) * MULTS[split_line[1]])
+                row.append(float(split_line[2]))
+                row.append(float(split_line[3]))
+                row.append(float(split_line[4]) * MULTS[split_line[5]])
+                row.append(float(split_line[6]) * MULTS[split_line[7]])
+                row.append(float(split_line[8]) * MULTS[split_line[9]])
 
-            out.append(row)
+                out.append(row)
+            elif collect and collect_count >= 2:
+                # We only car about this line
+                if "keV" in line and "micron" in line:
+                    conversion = float(line.split()[0])
 
         return np.array(out)
 

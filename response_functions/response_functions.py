@@ -12,8 +12,8 @@ def single_impact(phi, sigma):
 
 # y = f_sat * (1 - exp(-phi * sigma)) + offset
 def single_impact_scaled(phi, sigma, f_sat):
-    return f_sat * single_impact(phi, sigma)
+    return f_sat * (1 - np.exp(-1 * phi * sigma))
 
 # y = f_sat * (1 - exp(-phi * sigma)) + offset
 def single_impact_arb(phi, sigma, f_sat, offset):
-    return offset + single_impact_scaled(phi, sigma, f_sat)
+    return offset + f_set * (1 - np.exp(-1 * phi * sigma))

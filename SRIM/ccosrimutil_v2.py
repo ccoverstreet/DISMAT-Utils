@@ -5,6 +5,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+from dataclasses import dataclass
 
 # These mults are use to convert all length units to micrometers
 MULTS = {
@@ -16,6 +17,10 @@ MULTS = {
     "GeV": 1e6
 }
 
+@dataclass
+class SrimData:
+    rho: float
+    data: np.array
 
 # Convert all to keV and micron
 def read_file(filename):
@@ -24,6 +29,7 @@ def read_file(filename):
         collect_count = 0
         out = []
         conversion = 1.0
+        rho = 1.0
 
         for line in f:
             stripped = line.strip()
@@ -34,7 +40,9 @@ def read_file(filename):
                 collect_count += 1
                 continue
 
-            if not collect: continue
+            if not collect: 
+                if "Density" in stripped:
+                    rho = float(stripped.split()[3])
 
             if collect and collect_count < 2:
                 split_line = line.split()
@@ -48,7 +56,7 @@ def read_file(filename):
 
                 out.append(row)
             elif collect and collect_count >= 2:
-                # We only car about this line
+                # We only care about this line
                 if "keV" in line and "micron" in line:
                     conversion = float(line.split()[0])
 
@@ -58,7 +66,7 @@ def read_file(filename):
         out[:, 1] = out[:, 1] * conversion
         out[:, 2] = out[:, 2] * conversion
 
-        return out
+        return SrimData(rho, out)
 
 def range_to_depth(range_data):
     return range_data[-1] - range_data
@@ -98,23 +106,29 @@ if __name__ == "__main__":
         rho = args.rho
         packing_frac = args.packing
 
+        srim_data = read_file(filename)
+        data = srim_data.data
+
         print(f"Using density of {rho} g/cm^3")
+        print(f"SRIM was run using density of {srim_data.rho} g/cm^3")
         print(f"Using packing fraction of {packing_frac}")
 
-        print("\n*********\nIMPORTANT: The 'normalized' plot and dataset apply the packing fraction to the energy loss values as well to preserve the integral\n*********\n")
+        print("\n*********\nIMPORTANT: The 'normalized' plot and dataset apply the packing fraction to the energy loss values as well to preserve the integral. \n!!!DO NOT USE WHEN REPORTING VALUES IN PAPERS.!!!\n*********\n")
 
-        data = read_file(filename)
-        depth = range_to_depth(data[:, 3]) / packing_frac
-        elec_dedx = dedx_to_kev_nm(data[:,1])
-        nuclear_dedx = dedx_to_kev_nm(data[:, 2])
+        # Perform all conversions to usable output format
+        # We use the SRIM density and user provided density to properly scale 
+        # the data.
+        # Density correction rho_corr = user_rho / SRIM_rho
+        rho_corr = rho / srim_data.rho
 
-        #norm_elec_dedx = dedx_to_kev_nm(data[:,1], rho * packing_frac)
-        #norm_nuclear_dedx = dedx_to_kev_nm(data[:, 2], rho * packing_frac)
+        depth = range_to_depth(data[:, 3]) / packing_frac / rho_corr
+        elec_dedx = dedx_to_kev_nm(data[:,1]) * rho_corr
+        nuclear_dedx = dedx_to_kev_nm(data[:, 2]) * rho_corr
         
         # Normalized is just used for keeping the integral of the table data the same.
         # Normalized should not be reported in paper
-        norm_elec_dedx = dedx_to_kev_nm(data[:,1]) * packing_frac
-        norm_nuclear_dedx = dedx_to_kev_nm(data[:, 2]) * packing_frac
+        norm_elec_dedx = dedx_to_kev_nm(data[:,1]) * packing_frac * rho_corr
+        norm_nuclear_dedx = dedx_to_kev_nm(data[:, 2]) * packing_frac * rho_corr
 
         if args.save:
             combined_array = np.vstack((depth,

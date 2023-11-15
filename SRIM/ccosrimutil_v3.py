@@ -124,19 +124,71 @@ if __name__ == "__main__":
         depth = range_to_depth(data[:, 3]) / packing_frac / rho_corr
         elec_dedx = dedx_to_kev_nm(data[:,1]) * rho_corr
         nuclear_dedx = dedx_to_kev_nm(data[:, 2]) * rho_corr
-        
-        # Normalized is just used for keeping the integral of the table data the same.
-        # Normalized should not be reported in paper
-        norm_elec_dedx = dedx_to_kev_nm(data[:,1]) * packing_frac * rho_corr
-        norm_nuclear_dedx = dedx_to_kev_nm(data[:, 2]) * packing_frac * rho_corr
+        total_dedx = elec_dedx + nuclear_dedx
+
+        # Calculate dx(dE/dx) for caculating stopping depth
+        # Using typical finite derivative formula
+        dx_depth = np.diff(depth) / 2 + depth[:-1]
+        dx_total_dedx = np.diff(total_dedx) / np.diff(depth)
+
+
+        fig = plt.figure()
+
+        coord = np.array([0, 0])
+        def onclick(event):
+            global coord, fig
+            ax = fig.gca()
+            if len(ax.lines) != 1:
+                lines = ax.get_lines().pop(1).remove()
+                #ax.get_lines().remove(id(lines[0]))
+
+            coord = np.array([event.xdata, event.ydata])
+
+            print(f"Current stopping depth: {event.xdata}")
+            ax.axvline(event.xdata)
+            fig.canvas.draw()
+
+
+
+        plt.title("Select stopping depth by clicking", fontsize=12)
+        plt.plot(dx_depth, dx_total_dedx)
+        plt.ylim(-3, 2)
+
+
+        fig.canvas.mpl_connect("button_press_event", onclick)
+        plt.show()
+
+        print(f"\nGraphically selected stopping depth: {coord[0]} microns")
+        print(f"Maximum stopping distance: {np.max(depth)} microns")
+
+        # Calculate 10% deviation in energy loss
+        starting_dedx = total_dedx[-1]
+        coord_10p = 0
+        for i in range(len(depth)-1, 0, -1):
+            pdiff = np.abs((total_dedx[i] - starting_dedx) / (starting_dedx))
+            print(pdiff)
+            if pdiff > 0.1:
+                coord_10p = depth[i]
+                break
+
+        print(f"Stopping depth at 10% deviation: {coord_10p}")
+
 
         if args.save:
             combined_array = np.vstack((depth,
-                                        elec_dedx, nuclear_dedx, elec_dedx + nuclear_dedx,
-                                        norm_elec_dedx, norm_nuclear_dedx, norm_nuclear_dedx + norm_elec_dedx)).T
+                                        elec_dedx, nuclear_dedx, elec_dedx + nuclear_dedx)).T
             with open(args.save, "w") as f:
-                np.savetxt(f, np.flip(combined_array, axis=0), header="Depth (um), Electronic Energy Loss (keV/nm), Nuclear Energy Loss (keV/nm), Total Energy Loss (keV/nm), Normalized Electronic Energy Loss (keV/nm), Normalized Nuclear Energy Loss (keV/nm), Normalized Total Energy Loss (keV/nm)")
+                np.savetxt(f, np.flip(combined_array, axis=0), header="Depth (um), Electronic Energy Loss (keV/nm), Nuclear Energy Loss (keV/nm), Total Energy Loss (keV/nm)")
 
+
+        # Make plot using selected and calculated stopping depths
+        plt.figure()
+        plt.plot(depth, total_dedx, label="total", color="k")
+        plt.axvline(coord[0], label=f"Graphical stopping: {round(coord[0], 2)} $\mu$m", color="g")
+        plt.axvline(coord_10p, label=f"10% dev. stopping: {round(coord_10p, 2)} $\mu$m", color="c")
+        plt.xlabel(r"Depth ($\mu m$)", fontsize=14)
+        plt.ylabel("Energy loss (keV/nm)", fontsize=14)
+        plt.legend()
 
         # Create figures using the generated data
         plt.figure()
@@ -147,20 +199,6 @@ if __name__ == "__main__":
         plt.plot(depth, nuclear_dedx,
                  label="nuclear", linewidth=1, color="b", ls="--")
         plt.title(f"{filename}", fontsize=16)
-        plt.xlabel(r"Depth ($\mu m$)", fontsize=14)
-        plt.ylabel("Energy loss (keV/nm)", fontsize=14)
-        plt.xticks(fontsize=14)
-        plt.yticks(fontsize=14)
-        plt.legend(fontsize=14)
-
-        plt.figure()
-        plt.plot(depth, norm_elec_dedx + norm_nuclear_dedx,
-                 label="total", linewidth=1, color="k")
-        plt.plot(depth, norm_elec_dedx,
-                 label="electronic", linewidth=1, color="r", ls="--")
-        plt.plot(depth, norm_nuclear_dedx,
-                 label="nuclear", linewidth=1, color="b", ls="--")
-        plt.title(f"{filename} normalized", fontsize=16)
         plt.xlabel(r"Depth ($\mu m$)", fontsize=14)
         plt.ylabel("Energy loss (keV/nm)", fontsize=14)
         plt.xticks(fontsize=14)

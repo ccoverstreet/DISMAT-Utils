@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Utility Library and Script for SRIM output analysis
 # Cale Overstreet
+# Testers: George Adamson 
 # Comes with a CLI tool (use `python3 thisscript.py --help` to see options)
 
 import numpy as np
@@ -76,6 +77,19 @@ def range_to_depth(range_data):
 def dedx_to_kev_nm(eloss):
     return eloss / 1000
 
+def find_index_before_stopping(dx_depth, dx_total_dedx):
+    # Cut off steep drop that appears on right hand side
+    # Iterate through to remove section with steep slope
+    evaluate = lambda pos: dx_total_dedx[pos]
+
+
+    pos = 0
+    while pos < len(dx_total_dedx) and (evaluate(pos) < 0):
+        print(pos, dx_depth[pos], dx_total_dedx[pos], evaluate(pos))
+        pos += 1
+
+    return pos
+
 
 if __name__ == "__main__":
     import sys 
@@ -113,14 +127,13 @@ if __name__ == "__main__":
         print(f"SRIM was run using density of {srim_data.rho} g/cm^3")
         print(f"Using packing fraction of {packing_frac}")
 
-        print("\n*********\nIMPORTANT: The 'normalized' plot and dataset apply the packing fraction to the energy loss values as well to preserve the integral. \n!!!DO NOT USE WHEN REPORTING VALUES IN PAPERS.!!!\n*********\n")
-
         # Perform all conversions to usable output format
         # We use the SRIM density and user provided density to properly scale 
         # the data.
         # Density correction rho_corr = user_rho / SRIM_rho
         rho_corr = rho / srim_data.rho
 
+        energies = data[:, 0]
         depth = range_to_depth(data[:, 3]) / packing_frac / rho_corr
         elec_dedx = dedx_to_kev_nm(data[:,1]) * rho_corr
         nuclear_dedx = dedx_to_kev_nm(data[:, 2]) * rho_corr
@@ -131,7 +144,10 @@ if __name__ == "__main__":
         dx_depth = np.diff(depth) / 2 + depth[:-1]
         dx_total_dedx = np.diff(total_dedx) / np.diff(depth)
 
+        dxdedx_cutoff = find_index_before_stopping(dx_depth, dx_total_dedx)
 
+
+        # Select stopping depth from d/dx(dE/dx)
         fig = plt.figure()
 
         coord = np.array([0, 0])
@@ -150,9 +166,11 @@ if __name__ == "__main__":
 
 
 
-        plt.title("Select stopping depth by clicking", fontsize=12)
-        plt.plot(dx_depth, dx_total_dedx)
-        plt.ylim(-3, 2)
+        plt.title("Select stopping depth by clicking the graph\nClose this window when finished", fontsize=12)
+        plt.plot(dx_depth[dxdedx_cutoff:], dx_total_dedx[dxdedx_cutoff:])
+        plt.ylabel("d/dx(dE/dx)")
+        plt.xlabel(r"Depth ($\mu$m)")
+        #plt.ylim(-3, 2)
 
 
         fig.canvas.mpl_connect("button_press_event", onclick)
@@ -176,9 +194,11 @@ if __name__ == "__main__":
 
         if args.save:
             combined_array = np.vstack((depth,
-                                        elec_dedx, nuclear_dedx, elec_dedx + nuclear_dedx)).T
+                                        elec_dedx, nuclear_dedx, elec_dedx + nuclear_dedx, energies)).T
             with open(args.save, "w") as f:
-                np.savetxt(f, np.flip(combined_array, axis=0), header="Depth (um), Electronic Energy Loss (keV/nm), Nuclear Energy Loss (keV/nm), Total Energy Loss (keV/nm)")
+                np.savetxt(f, np.flip(combined_array, axis=0),
+                           header="Depth (um), Electronic Energy Loss (keV/nm), Nuclear Energy Loss (keV/nm), Total Energy Loss (keV/nm), Energy (keV)",
+                           delimiter=",")
 
 
         # Make plot using selected and calculated stopping depths
@@ -188,7 +208,10 @@ if __name__ == "__main__":
         plt.axvline(coord_10p, label=f"10% dev. stopping: {round(coord_10p, 2)} $\mu$m", color="c")
         plt.xlabel(r"Depth ($\mu m$)", fontsize=14)
         plt.ylabel("Energy loss (keV/nm)", fontsize=14)
+        plt.xticks(fontsize=14)
+        plt.yticks(fontsize=14)
         plt.legend()
+        plt.tight_layout()
 
         # Create figures using the generated data
         plt.figure()
@@ -205,6 +228,25 @@ if __name__ == "__main__":
         plt.yticks(fontsize=14)
         plt.legend(fontsize=14)
 
+        plt.tight_layout()
+
+
+        plt.figure()        
+        plt.plot(energies, total_dedx)
+        plt.xlabel(r"Energy (keV)", fontsize=14)
+        plt.ylabel("dE/dx (keV/nm)", fontsize=14)
+        plt.xticks(fontsize=14)
+        plt.yticks(fontsize=14)
+        plt.xscale("log")
+        plt.tight_layout()
+
+
+        plt.figure()        
+        plt.plot(depth, energies)
+        plt.xlabel(r"Depth ($\mu m$)", fontsize=14)
+        plt.ylabel("Energy (keV)", fontsize=14)
+        plt.xticks(fontsize=14)
+        plt.yticks(fontsize=14)
         plt.tight_layout()
 
     plt.show()

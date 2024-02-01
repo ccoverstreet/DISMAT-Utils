@@ -24,7 +24,7 @@ This utility is used to convert the output of SRIM into an energy loss vs. depth
 1. Download the latest version of this script
     - For convenience, you can save this script in the same directory as your SRIM output text files
 2. Open the directory with this utility's Python file and your SRIM text files in a terminal
-3. Run `python3 ccosrimutil_v2.py YOURTEXTFILE.txt -p=PACKINGFRACTION -r=YOURDENSITY --save=somefilename.dat` or `python ccosrimutil_v2.py YOURTEXTFILE.txt -p=PACKINGFRACTION -r=YOURDENSITY --save=somefilename.dat`
+3. Run `python3 ccosrimutil_v4.py YOURTEXTFILE.txt -p=PACKINGFRACTION -r=YOURDENSITY --save=somefilename.dat` or `python ccosrimutil_v4.py YOURTEXTFILE.txt -p=PACKINGFRACTION -r=YOURDENSITY --save=somefilename.dat`
     - Replace `YOURTEXTFILE.txt` with your SRIM text file name
     - Replace `PACKINGFRACTION ` with a value between 0.0 and 1.0
     - Replace `YOURDENSITY` with the theoretical density of your composition

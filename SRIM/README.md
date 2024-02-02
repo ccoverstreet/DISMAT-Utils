@@ -24,10 +24,15 @@ This utility is used to convert the output of SRIM into an energy loss vs. depth
 1. Download the latest version of this script
     - For convenience, you can save this script in the same directory as your SRIM output text files
 2. Open the directory with this utility's Python file and your SRIM text files in a terminal
-3. Run `python3 ccosrimutil_v4.py YOURTEXTFILE.txt -p=PACKINGFRACTION -r=YOURDENSITY --save=somefilename.dat` or `python ccosrimutil_v4.py YOURTEXTFILE.txt -p=PACKINGFRACTION -r=YOURDENSITY --save=somefilename.dat`
-    - Replace `YOURTEXTFILE.txt` with your SRIM text file name
-    - Replace `PACKINGFRACTION ` with a value between 0.0 and 1.0
-    - Replace `YOURDENSITY` with the theoretical density of your composition
-    - Replace `somefilename.dat` to an output name that makes sense. This data file will have energy loss vs. depth and associated ion energy.
+
+3. Run 
+    - GUI Vesion
+        - Run `python3 ccosrimutil_v5.py` or `python ccosrimutil_v5.py`
+    - CLI Version
+        - run `python3 ccosrimutil_v5.py YOURTEXTFILE.txt -p=PACKINGFRACTION -r=YOURDENSITY --save=somefilename.dat` or `python ccosrimutil_v5.py YOURTEXTFILE.txt -p=PACKINGFRACTION -r=YOURDENSITY --save=somefilename.dat`
+        - Replace `YOURTEXTFILE.txt` with your SRIM text file name
+        - Replace `PACKINGFRACTION ` with a value between 0.0 and 1.0
+        - Replace `YOURDENSITY` with the theoretical density of your composition
+        - Replace `somefilename.dat` to an output name that makes sense. This data file will have energy loss vs. depth and associated ion energy.
 4. The previous command will open up 2 plotting windows with your energy loss results. 
 5. All data used to generate the plots with be saved in the output file specified in the command after `--save=`. This is just a normal text file with the data stored in columns. You can use this file to plot the data however you like.

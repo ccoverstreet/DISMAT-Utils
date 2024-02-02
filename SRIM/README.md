@@ -28,8 +28,6 @@ This utility is used to convert the output of SRIM into an energy loss vs. depth
     - Replace `YOURTEXTFILE.txt` with your SRIM text file name
     - Replace `PACKINGFRACTION ` with a value between 0.0 and 1.0
     - Replace `YOURDENSITY` with the theoretical density of your composition
-    - Replace `somefilename.dat` to an output name that makes sense. This data file will have energy loss vs. depth.
-        - **Important**: The "Normalized" data is for debug purposes only. **DO NOT REPORT THESE VALUES**
+    - Replace `somefilename.dat` to an output name that makes sense. This data file will have energy loss vs. depth and associated ion energy.
 4. The previous command will open up 2 plotting windows with your energy loss results. 
-    - **Important**: The "Normalized" data is for debug purposes only. **DO NOT REPORT THESE VALUES/FIGURE**
 5. All data used to generate the plots with be saved in the output file specified in the command after `--save=`. This is just a normal text file with the data stored in columns. You can use this file to plot the data however you like.

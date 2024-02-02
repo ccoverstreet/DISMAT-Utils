@@ -103,7 +103,7 @@ if __name__ == "__main__":
 
     parser.add_argument("datafiles", nargs="+")
     parser.add_argument("-s", "--save", type=str,
-                        help="Save the converted depth and energy loss data to a file")
+                        help="Save the converted depth and energy loss data to a file. Filename should not have spaces (unless within quotes).")
     parser.add_argument("-r", "--rho", type=float, required=True,
                         help="theoretical density of material (ex. 3.43 g/cm^3)")
     parser.add_argument("-p", "--packing", type=float, required=True,

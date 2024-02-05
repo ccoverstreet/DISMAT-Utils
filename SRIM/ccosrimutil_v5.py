@@ -268,7 +268,7 @@ def gui_main():
         [sg.Text("Select SRIM Output File"), sg.FileBrowse(key="srimoutputfile")],
         [sg.Text("Density (g/cm^3)"), sg.Input(key="density")],
         [sg.Text("Packing fraction ([0, 1])"), sg.Input(key="packingfraction")],
-        [sg.Text("Output File"), sg.FileSaveAs(key="outputfile", file_types=("Comma-separated values (CSV)", "*.csv"))],
+        [sg.Text("Output File"), sg.FileSaveAs(key="outputfile", file_types=(("Comma-separated values (CSV)", "*.csv"),))],
         [sg.Button("Process")]
     ]
 

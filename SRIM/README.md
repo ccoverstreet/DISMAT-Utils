@@ -2,6 +2,10 @@
 
 This utility is used to convert the output of SRIM into an energy loss vs. depth format with sensible units.
 
+## NEW GUI MODE!!!
+
+- The ccosrimutil now can be run in a GUI mode by not providing any command line arguments (`python ccosimutil_v5.py`)
+
 ## Using
 
 ### SRIM Calculation

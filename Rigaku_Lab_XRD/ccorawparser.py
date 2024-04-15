@@ -35,7 +35,7 @@ def main():
                     print(filename)
                     data = read_file(filename)
 
-                    data.write_file(f"{path.splitext(path.basename(filename))[0]}_conv.xy")
+                    data.write_file(f"{path.dirname(filename)}/{path.splitext(path.basename(filename))[0]}_conv.xy")
 
                     plt.plot(data.two_theta, data.intensities)
                     plt.show()

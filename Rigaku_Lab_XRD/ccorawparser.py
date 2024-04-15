@@ -5,18 +5,51 @@ import matplotlib.pyplot as plt
 from dataclasses import dataclass
 import numpy as np
 from os import path
+import PySimpleGUI as sg
 
 # Header information starts at 0xBB8 offset
 # Data stream appears to start at 0xC02 offset
 
 def main():
-    for filename in sys.argv[1:]:
-        data = read_file(filename)
+    if len(sys.argv) < 2:
+        # Run in GUI mode
 
-        data.write_file(f"{path.splitext(path.basename(filename))[0]}_conv.xy")
+        layout = [
+            [sg.Text("Select .RAW files to convert")],
+            [sg.FilesBrowse(key="files", size=(20, 1))],
+            [sg.Button("Process")]
 
-        plt.plot(data.two_theta, data.intensities)
-        plt.show()
+        ]
+
+        window = sg.Window("CCO Raw Parser", layout)
+
+        while True:
+            event, values = window.read()
+            if event in (sg.WIN_CLOSED, 'Exit'):
+                break
+
+            if event == "Process":
+                files = values["files"].split(";")
+                
+                for filename in files:
+                    print(filename)
+                    data = read_file(filename)
+
+                    data.write_file(f"{path.splitext(path.basename(filename))[0]}_conv.xy")
+
+                    plt.plot(data.two_theta, data.intensities)
+                    plt.show()
+
+            
+    else:
+        # Run in CLI mode
+        for filename in sys.argv[1:]:
+            data = read_file(filename)
+
+            data.write_file(f"{path.splitext(path.basename(filename))[0]}_conv.xy")
+
+            plt.plot(data.two_theta, data.intensities)
+            plt.show()
 
 @dataclass
 class XRDData:

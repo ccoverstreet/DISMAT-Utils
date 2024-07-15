@@ -100,6 +100,32 @@ class ProcessConfig:
     rho: float
     packing: float
 
+@dataclass 
+class ConversionConfig:
+    rho: float
+    packing: float
+
+def convert_srim_to_table(srim_data, conv_config: ConversionConfig):
+    rho = conv_config.rho
+    packing_frac = conv_config.packing
+
+    data = srim_data.data
+
+    # Apply correction in case new density is different from density
+    # in SRIM file
+    rho_corr = rho / srim_data.rho
+
+    # Get basic columns
+    energies = data[:, 0]
+    depth = range_to_depth(data[:, 3]) / packing_frac / rho_corr
+    elec_dedx = dedx_to_kev_nm(data[:,1]) * rho_corr
+    nuclear_dedx = dedx_to_kev_nm(data[:, 2]) * rho_corr
+    total_dedx = elec_dedx + nuclear_dedx
+
+
+    return np.vstack((depth, elec_dedx, nuclear_dedx, elec_dedx + nuclear_dedx, energies)).T
+
+
 def process_file(proc_config):
     filename = proc_config.srim_file
     rho = proc_config.rho

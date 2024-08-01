@@ -39,7 +39,6 @@ class MaterialForm(QtWidgets.QWidget):
 
         input_layout = QtWidgets.QVBoxLayout()
 
-        
         file_row = QtWidgets.QHBoxLayout()
         self.file_label = QtWidgets.QLabel("Current file: none")
         self.file_label.setMaximumWidth(100)
@@ -171,26 +170,33 @@ class PlotTab(QtWidgets.QWidget):
         self.canvas.update_plot()
 
 
-
 class PlottingFrame(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
 
         layout = QtWidgets.QVBoxLayout()
 
-        tab_widget = QtWidgets.QTabWidget()
+        self.tab_widget = QtWidgets.QTabWidget()
 
         self.dEdx_x = PlotTab()
         self.dEdx_E = PlotTab()
         self.annotated = PlotTab()
+        self.deriv = PlotTab()
 
         #layout.addWidget(demo)
-        tab_widget.addTab(self.dEdx_x, "dE/dx(x)")
-        tab_widget.addTab(self.dEdx_E, "dE/dx(E)")
-        tab_widget.addTab(self.annotated, "dE/dx(x) annotated")
-        layout.addWidget(tab_widget)
+        self.tab_widget.addTab(self.dEdx_x, "dE/dx(x)")
+        self.tab_widget.addTab(self.dEdx_E, "dE/dx(E)")
+        self.tab_widget.addTab(self.annotated, "dE/dx(x) annotated")
+        self.tab_widget.addTab(self.deriv, "(dE/dx(x))'")
+        self.tab_widget.currentChanged.connect(self.refresh_tab)
+        layout.addWidget(self.tab_widget)
 
         self.setLayout(layout)
+
+    def refresh_tab(self, index):
+        page = self.tab_widget.widget(index)
+        page.fig.tight_layout()
+        page.update_plot()
 
     def plot_table(self, data):
         # dEdx(x) plot
@@ -205,6 +211,7 @@ class PlottingFrame(QtWidgets.QWidget):
         self.dEdx_x.axes.set_ylim(0, np.max(data[:, 1]) * 1.05)
         self.dEdx_x.axes.legend(fontsize=12)
         #self.dEdx_x.fig.tight_layout()
+        self.dEdx_x.fig.tight_layout()
         self.dEdx_x.update_plot()
 
         # dEdx(E) plot
@@ -220,6 +227,7 @@ class PlottingFrame(QtWidgets.QWidget):
         self.dEdx_E.axes.set_xscale("log")
         self.dEdx_E.axes.legend(fontsize=12)
         #self.dEdx_E.fig.tight_layout()
+        self.dEdx_E.fig.tight_layout()
         self.dEdx_E.update_plot()
 
 
@@ -230,6 +238,8 @@ class PlottingFrame(QtWidgets.QWidget):
         flipped = np.flip(data, axis=0)
         dEdx_0 = flipped[0, 1]
 
+        # Find depth where stopping is more than 10%
+        # We linearly interpolate to find the exact point
         for i, val in enumerate(flipped[:, 1]):
             print(val, dEdx_0)
             delta = np.abs(val - dEdx_0) / dEdx_0
@@ -266,8 +276,18 @@ class PlottingFrame(QtWidgets.QWidget):
         self.annotated.axes.set_xlim(0, np.max(data[:, 0]) * 1.05)
         self.annotated.axes.set_ylim(0, np.max(data[:, 1]) * 1.05)
         self.annotated.axes.legend(fontsize=12)
-            
+        self.annotated.fig.tight_layout()
         self.annotated.update_plot()
+
+
+        # (dE/dx)'
+        self.deriv.axes.clear()
+        dEdxp = np.diff(flipped[:, 3]) / np.diff(flipped[:, 0])
+        dEdxp_x = np.diff(flipped[:, 0]) / 2 + flipped[:-1, 0]
+
+        self.deriv.axes.plot(dEdxp_x, dEdxp)
+        self.deriv.update_plot()
+
 
 
 if __name__ == "__main__":

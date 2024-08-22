@@ -1,0 +1,16 @@
+---Stopping/Range Input Data (Number-format: Period = Decimal Point)
+---Output File Name
+"Gold in Zr- O"
+---Ion(Z), Ion Mass(u)
+79   196.967
+---Target Data: (Solid=0,Gas=1), Density(g/cm3), Compound Corr.
+0    5.68    1
+---Number of Target Elements
+ 2 
+---Target Elements: (Z), Target name, Stoich, Target Mass(u)
+40   "Zirconium"             1             91.22
+8   "Oxy"                    2             15.999
+---Output Stopping Units (1-8)
+ 5
+---Ion Energy : E-Min(keV), E-Max(keV)
+ 10    1470000

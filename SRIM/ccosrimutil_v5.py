@@ -43,7 +43,7 @@ def read_file(filename):
 
             if not collect: 
                 if "Density" in stripped:
-                    rho = float(stripped.split()[3])
+                    rho = float(stripped.replace("Target", "").split()[2])
 
             if collect and collect_count < 2:
                 split_line = line.split()

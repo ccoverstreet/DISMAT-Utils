@@ -1,11 +1,14 @@
 from PyQt6 import QtWidgets
 from PyQt6.QtCore import pyqtSignal as Signal
+from PyQt6.QtCore import Qt,QSize 
+from PyQt6.QtGui import QFont
 import sys
 import matplotlib.pyplot as plt
 import ccosrimutil_v5 as csu
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg, NavigationToolbar2QT
 from matplotlib.figure import Figure
 import numpy as np
+import srim as srim
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -17,17 +20,211 @@ class MainWindow(QtWidgets.QMainWindow):
 
         master = QtWidgets.QHBoxLayout()
 
+        self.input_box = QtWidgets.QVBoxLayout()
+
+        self.srim_form = SRIMInputForm()
         self.material_form = MaterialForm()
         self.plotting_frame = PlottingFrame()
+        self.divider = QtWidgets.QLabel("")
+        self.divider.setStyleSheet("border-top: 1px solid black")
+        #self.divider.setLineWidth(5)
+        #self.divider.setFrameShape(QtWidgets.QFrame.Shape.VLine)
+        #self.divider.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
 
+        self.srim_form.new_srim_table.connect(self.material_form.open_file)
         self.material_form.new_data.connect(self.plotting_frame.plot_table)
 
-        master.addWidget(self.material_form)
+        self.input_box.addWidget(self.srim_form)
+        self.input_box.addWidget(self.divider)
+        self.input_box.addWidget(self.material_form)
+
+        master.addLayout(self.input_box)
         master.addWidget(self.plotting_frame)
 
         central.setLayout(master)
         self.setCentralWidget(central)
         self.show()
+
+
+class ElementComboBox(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.layout = QtWidgets.QVBoxLayout()
+
+        self.combobox = QtWidgets.QComboBox()
+        self.combobox.setFont(QFont("Monospace"))
+        self.combobox.setMinimumHeight(30)
+        for sym in srim.ELEM_DICT:
+            elem = srim.ELEM_DICT[sym]
+            self.combobox.addItem(f"{elem.atomic_number:2} {sym:2} {elem.name:20}", sym)
+
+        self.layout.addWidget(self.combobox)
+
+        self.setLayout(self.layout)
+
+    def getSymbol(self):
+        return self.combobox.currentData()
+
+class SRIMInputForm(QtWidgets.QWidget):
+    new_srim_table = Signal(str)
+
+    def __init__(self):
+        super().__init__()
+
+        self.input_layout = QtWidgets.QVBoxLayout()
+
+
+        self.setMaximumWidth(500)
+
+        self.ion_row = QtWidgets.QHBoxLayout()
+        self.combo_label = QtWidgets.QLabel("Ion:")
+        self.ionbox = ElementComboBox()
+        #self.combobox = QtWidgets.QComboBox()
+        #self.combobox.setFont(QFont("Monospace"))
+        #for sym in srim.ELEM_DICT:
+        #    elem = srim.ELEM_DICT[sym]
+        #    self.combobox.addItem(f"{elem.atomic_number:2} {sym:2} {elem.name:20}", sym)
+
+        self.ion_row.addWidget(self.combo_label)
+        self.ion_row.addWidget(self.ionbox)
+
+        self.min_energy_row = QtWidgets.QHBoxLayout()
+        self.min_energy_label = QtWidgets.QLabel("Min. energy (keV)")
+        self.min_energy_input = QtWidgets.QDoubleSpinBox()
+        self.min_energy_input.setMinimum(10)
+        self.min_energy_input.setMaximum(1E9)
+        self.min_energy_row.addWidget(self.min_energy_label)
+        self.min_energy_row.addWidget(self.min_energy_input)
+
+        self.max_energy_row = QtWidgets.QHBoxLayout()
+        self.max_energy_label = QtWidgets.QLabel("Max. energy (keV)")
+        self.max_energy_input = QtWidgets.QDoubleSpinBox()
+        self.max_energy_input.setMinimum(10)
+        self.max_energy_input.setMaximum(1E9)
+        self.max_energy_row.addWidget(self.max_energy_label)
+        self.max_energy_row.addWidget(self.max_energy_input)
+
+        self.list_control_row = QtWidgets.QHBoxLayout()
+        self.add_elem_button = QtWidgets.QPushButton("Add element")
+        self.add_elem_button.clicked.connect(self.add_element)
+        self.delete_elem_button = QtWidgets.QPushButton("Delete sel.")
+        self.delete_elem_button.clicked.connect(self.delete_element)
+        self.list_control_row.addWidget(self.add_elem_button)
+        self.list_control_row.addWidget(self.delete_elem_button)
+
+        self.elem_list = QtWidgets.QListWidget()
+        self.add_element()
+        #item = QtWidgets.QListWidgetItem()
+        #self.elem_list.addItem(item)
+        #self.elem_list.setItemWidget(item, TargetElementRow())
+
+        self.density_row = QtWidgets.QHBoxLayout()
+        self.density_label = QtWidgets.QLabel("Density (g/cm<sup>3</sup>):")
+        self.density_input = QtWidgets.QDoubleSpinBox()
+        self.density_row.addWidget(self.density_label)
+        self.density_row.addWidget(self.density_input)
+
+        #self.ion_line = QtWidgets.QLineEdit()
+        #self.ion_completer = QtWidgets.QCompleter([srim.ELEM_DICT[x].name for x in srim.ELEM_DICT.keys()])
+        #self.ion_completer = QtWidgets.QCompleter(list(srim.ELEM_DICT.keys()))
+        #self.ion_completer.setCaseSensitivity(Qt.CaseSensitivity(0))
+        #self.ion_line.setCompleter(self.ion_completer)
+        #self.input_layout.addWidget(self.ion_line)
+
+        self.run_srim_button = QtWidgets.QPushButton("Run SRIM table")
+        self.run_srim_button.clicked.connect(self.run_srim_module)
+
+        self.input_layout.addLayout(self.ion_row)
+        self.input_layout.addLayout(self.min_energy_row)
+        self.input_layout.addLayout(self.max_energy_row)
+        self.input_layout.addLayout(self.list_control_row)
+        self.input_layout.addWidget(self.elem_list)
+        self.input_layout.addLayout(self.density_row)
+        self.input_layout.addWidget(self.run_srim_button)
+
+        self.setLayout(self.input_layout)
+
+    def add_element(self):
+        new_item = QtWidgets.QListWidgetItem()
+        new_item.setSizeHint(QSize(30, 60))
+        self.elem_list.addItem(new_item)
+        self.elem_list.setItemWidget(new_item, TargetElementRow())
+
+    def delete_element(self):
+        items = self.elem_list.selectedItems()
+        for x in items:
+            row = self.elem_list.indexFromItem(x)
+            wid = self.elem_list.takeItem(row.row())
+            del wid
+        print(items)
+
+    def run_srim_module(self):
+        ion_data = srim.ELEM_DICT[self.ionbox.getSymbol()]
+        min_energy = self.min_energy_input.value()
+        max_energy = self.max_energy_input.value()
+
+        stoich = []
+        target = []
+        for i in range(0, self.elem_list.count()):
+            item = self.elem_list.item(i)
+            widget = self.elem_list.itemWidget(item)
+            data = widget.data()
+
+            target.append(data[0])
+            stoich.append(data[1])
+
+        density = self.density_input.value()
+
+        srim_filename_parts = QtWidgets.QFileDialog.getSaveFileName(self, 'Save table', "", "SRIM Table File (*.srim);;")
+
+        if srim_filename_parts[0] == "": 
+            return
+
+        srim_filename = srim_filename_parts[0] if srim_filename_parts[0].endswith(".srim") else srim_filename_parts[0] + ".srim"
+
+
+        conf = srim.SRIMConfig(
+            srim_filename,
+            ion_data,
+            srim.TargetType.SOLID,
+            density,
+            1,
+            stoich,
+            target,
+            min_energy,
+            max_energy
+        )
+
+        print("Running SRIM config:", conf)
+        srim.run_srim_config(conf)
+        print("Finished running SRIM config")
+
+        self.new_srim_table.emit(srim_filename)
+
+
+
+class TargetElementRow(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        self.elembox = ElementComboBox()
+        self.stoich_input = QtWidgets.QDoubleSpinBox()
+        self.stoich_input.setMaximumWidth(80)
+        self.stoich_input.setMaximum(1000)
+
+        self.layout = QtWidgets.QHBoxLayout()
+        self.layout.addWidget(self.elembox)
+        self.layout.addWidget(self.stoich_input)
+
+        self.setLayout(self.layout)
+
+        #self.setMinimumHeight(60)
+
+    def data(self):
+        stoich = self.stoich_input.value()
+        return (srim.ELEM_DICT[self.elembox.getSymbol()], stoich)
+
+
 
 
 class MaterialForm(QtWidgets.QWidget):
@@ -41,7 +238,8 @@ class MaterialForm(QtWidgets.QWidget):
 
         file_row = QtWidgets.QHBoxLayout()
         self.file_label = QtWidgets.QLabel("Current file: none")
-        self.file_label.setMaximumWidth(100)
+        self.file_label.setMaximumWidth(200)
+        self.file_label.setWordWrap(True)
         file_button = QtWidgets.QPushButton("Open")
         file_button.clicked.connect(self.open_file_dialog)
         file_button.setMaximumWidth(39)
@@ -96,15 +294,15 @@ class MaterialForm(QtWidgets.QWidget):
         if self.input_filename[0] == "":
             return
 
-        self.open_file(self.input_filename)
+        self.open_file(self.input_filename[0])
 
     def open_file(self, filename):
         print(filename)
         self.file_label.setText(f"Current file: {filename}")
         try:
-            self.srim_data = csu.read_file(filename[0])
-        except:
-            QtWidgets.QMessageBox.warning(self, "CCO SRIM Utility Error", "The selected file is not a valid SRIM output file.")
+            self.srim_data = csu.read_file(filename)
+        except Exception as e:
+            QtWidgets.QMessageBox.warning(self, "CCO SRIM Utility Error", f"The selected file is not a valid SRIM output file.\n{e}")
             return
 
         self.rho_input.setValue(self.srim_data.rho)
@@ -132,7 +330,7 @@ class MaterialForm(QtWidgets.QWidget):
         name = savename[0] if savename[0].endswith(".csv") else savename[0] + ".csv"
 
 
-        np.savetxt(savename[0], np.flip(self.table, axis=0),
+        np.savetxt(name, np.flip(self.table, axis=0),
                    header="Depth (um), Electronic Energy Loss (keV/nm), Nuclear Energy Loss (keV/nm), Total Energy Loss (keV/nm), Energy (keV)",
                    delimiter=",")
 

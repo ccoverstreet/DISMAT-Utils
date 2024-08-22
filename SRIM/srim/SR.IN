@@ -1,0 +1,15 @@
+---Stopping/Range Input Data (Number-format: Period = Decimal Point)
+---Output File Name
+"/home/coverstreet/research/DISMAT-Utils/SRIM/Ho2Ti2O7_new.srim"
+---Ion(Z), Ion Mass(u)
+1   1.008
+---Target Data: (Solid=0,Gas=1), Density(g/cm3), Compound Corr.
+0 1.0 1
+---Number of Target Elements
+1
+---Target Elements: (Z), Target name, Stoich, Target Mass(u)
+1 "Hydrogen" 1.0 1.008
+---Output Stopping Units (1-8)
+5
+---Ion Energy : E-Min(keV), E-Max(keV)
+10.0 1000.0

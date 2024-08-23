@@ -82,11 +82,11 @@ class SRIMConfig:
 
 
 def run_srim_config(srim_config):
-    sr_in = f"{PROGRAM_DIR}/SR.IN"
+    sr_in = f"{PROGRAM_DIR}/srim/SR.IN"
     with open(sr_in, "w") as f:
         f.write(srim_config.to_input_file_str())
 
-    subprocess.run(PROGRAM_DIR + "/" + "SRModule.exe", cwd=PROGRAM_DIR)
+    subprocess.run(PROGRAM_DIR + "/srim/" + "SRModule.exe", cwd=PROGRAM_DIR + "/srim")
 
 
 if __name__ == "__main__":

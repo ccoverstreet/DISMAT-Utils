@@ -2,8 +2,9 @@ import subprocess
 import os
 from dataclasses import dataclass
 from enum import Enum
+import sys
 
-PROGRAM_DIR = os.path.dirname(os.path.abspath(__file__))
+PROGRAM_DIR = os.path.dirname(os.path.abspath(sys.argv[0]))
 
 @dataclass()
 class ElementData():
@@ -38,7 +39,7 @@ def load_element_data(filename):
     return elem_dict
 
 
-ELEM_DICT = load_element_data("data/ATOMDATA")
+ELEM_DICT = load_element_data(f"{PROGRAM_DIR}/data/ATOMDATA")
 
 
 class TargetType(Enum):

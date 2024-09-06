@@ -5,13 +5,13 @@ import matplotlib.pyplot as plt
 from dataclasses import dataclass
 import numpy as np
 from os import path
-import PySimpleGUI as sg
 
 # Header information starts at 0xBB8 offset
 # Data stream appears to start at 0xC02 offset
 
 def main():
     if len(sys.argv) < 2:
+        import PySimpleGUI as sg
         # Run in GUI mode
 
         layout = [

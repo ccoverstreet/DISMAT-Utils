@@ -12,7 +12,6 @@ y_err = np.random.rand(np.size(x)) * 0.4
 def linear(params, x):
     return params[0] + params[1] * x
 
-
 # General flow:
 # 1. Make Model from your selected function
 # 2. Make RealData using your uncertainties
@@ -41,7 +40,4 @@ y_fit_curve = linear_curve(x, *popt)
 
 plt.plot(x_fit, y_fit_curve)
 
-
 plt.show()
-
-# Function should be defined as an (array of parameters, x)

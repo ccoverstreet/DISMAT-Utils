@@ -11,36 +11,22 @@ from os import path
 
 def main():
     if len(sys.argv) < 2:
-        import PySimpleGUI as sg
-        # Run in GUI mode
+        import tkinter as tk
+        from tkinter import filedialog
 
-        layout = [
-            [sg.Text("Select .RAW files to convert")],
-            [sg.FilesBrowse(key="files", size=(20, 1))],
-            [sg.Button("Process")]
+        root = tk.Tk()
+        root.withdraw()
+        files = tk.filedialog.askopenfiles(mode="r")
+        print(files)
 
-        ]
+        for filename in files:
+            data = read_file(filename.name)
 
-        window = sg.Window("CCO Raw Parser", layout)
+            data.write_file(f"{path.splitext(path.basename(filename.name))[0]}_conv.xy")
 
-        while True:
-            event, values = window.read()
-            if event in (sg.WIN_CLOSED, 'Exit'):
-                break
+            plt.plot(data.two_theta, data.intensities)
+            plt.show()
 
-            if event == "Process":
-                files = values["files"].split(";")
-                
-                for filename in files:
-                    print(filename)
-                    data = read_file(filename)
-
-                    data.write_file(f"{path.dirname(filename)}/{path.splitext(path.basename(filename))[0]}_conv.xy")
-
-                    plt.plot(data.two_theta, data.intensities)
-                    plt.show()
-
-            
     else:
         # Run in CLI mode
         for filename in sys.argv[1:]:

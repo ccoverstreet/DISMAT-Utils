@@ -21,8 +21,9 @@ def main():
 
         for filename in files:
             data = read_file(filename.name)
-
-            data.write_file(f"{path.splitext(path.basename(filename.name))[0]}_conv.xy")
+            dirname = str(path.dirname(filename.name))
+            print(dirname)
+            data.write_file(f"{dirname}/{path.splitext(path.basename(filename.name))[0]}_conv.xy")
 
             plt.plot(data.two_theta, data.intensities)
             plt.show()
@@ -64,9 +65,7 @@ def read_file(filename):
     theta_min = struct.unpack("f", f.read(4))[0]
     theta_max = struct.unpack("f", f.read(4))[0]
     spacing = struct.unpack("f", f.read(4))[0]
-
     print(scan_speed, theta_min, theta_max, spacing)
-
 
     theta = []
     intensities = []

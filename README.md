@@ -9,6 +9,7 @@ These repositories also contain code/programs relevant for the DISMAT group that
 
 - [horiba_raman_ccoverstreet](https://github.com/ccoverstreet/horiba-raman): Python package for Raman spectra processing (particularly useful for mapping)
     - This package provides utilities for reading the various files needed to fully reproduce a Raman map with image overlay
+- [AMORPH](https://github.com/ccoverstreet/AMORPH): Program for using Bayesian inference to determine amorphous and crystalline components of diffraction patterns
 
 ## Contributing
 

@@ -35,7 +35,11 @@ def main():
 
             data.write_file(f"{path.splitext(path.basename(filename))[0]}_conv.xy")
 
+            plt.title(filename, fontsize=16)
             plt.plot(data.two_theta, data.intensities)
+            plt.xlabel("Two-theta [deg.]", fontsize=16)
+            plt.ylabel("Intensity [counts]", fontsize=16)
+            plt.tight_layout()
             plt.show()
 
 @dataclass

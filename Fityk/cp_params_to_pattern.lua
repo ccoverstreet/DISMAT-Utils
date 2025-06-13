@@ -1,3 +1,6 @@
+-- Kenneth Sanders
+-- 2025/06/13
+
 prev_y = nil
 for n = 1, 1 do
   	local path = F:get_info(“filename”, n)
